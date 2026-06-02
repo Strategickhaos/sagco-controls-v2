@@ -222,6 +222,43 @@ fn main() {
         return;
     }
 
+    // --execute: accept dash-separated codons (ATG-TCT-GCT-TAA)
+    if let Some(pos) = args.iter().position(|a| a == "--execute") {
+        let raw = args.get(pos+1).expect("--execute requires sequence");
+        // strip dashes → raw ATGC string
+        let seq: String = raw.chars().filter(|c| matches!(c, 'A'|'T'|'G'|'C'|'a'|'t'|'g'|'c')).collect();
+        println!("=== SAGCO-DNA EXECUTE ===");
+        println!("INPUT={}", raw);
+        println!("CLEANED={}nt", seq.len());
+        let instrs = execute(&seq, &table);
+        let exec_str: String = instrs.iter().map(|(c,o)| format!("{}{}", c, o)).collect();
+        let exec_seal = seal(&exec_str);
+        println!("");
+        println!("--- OPCODE DISTRIBUTION ---");
+        let mut counts: std::collections::HashMap<String, usize> = std::collections::HashMap::new();
+        for (_, op) in &instrs { *counts.entry(op.clone()).or_insert(0) += 1; }
+        let mut sorted: Vec<_> = counts.iter().collect();
+        sorted.sort_by(|a,b| b.1.cmp(a.1));
+        for (op, n) in &sorted { println!("  {} = {}", op, n); }
+        println!("");
+        println!("PIPELINE={}", instrs.iter().map(|(_,o)| o.as_str()).collect::<Vec<_>>().join(" → "));
+        println!("SEAL={}", exec_seal);
+        println!("STATUS=SAGCO_DNA_EXECUTE_PASS");
+
+        fs::create_dir_all("data").ok();
+        let ledger_line = serde_json::to_string(&json!({
+            "opcode":  "DNA_EXECUTE",
+            "timestamp": Utc::now().to_rfc3339(),
+            "codons":  instrs.len(),
+            "seal":    exec_seal,
+            "status":  "SAGCO_DNA_EXECUTE_PASS",
+        })).unwrap() + "\n";
+        if let Ok(mut f) = fs::OpenOptions::new().create(true).append(true).open("data/dna_ledger.jsonl") {
+            let _ = f.write_all(ledger_line.as_bytes());
+        }
+        return;
+    }
+
     // --file or raw sequence
     let sequence = if let Some(pos) = args.iter().position(|a| a == "--file") {
         let path = args.get(pos+1).expect("--file requires path");

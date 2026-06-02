@@ -172,9 +172,25 @@ services:
         echo ""
         echo "STATUS=SAGCO_HEADLESS_TEST_SUITE_PASS"
 
+
+  # ── 🧬 DNA SYNTHESIS — encode doctrine in DNA + execute ─────────────────────
+  sagco-dna-encode:
+    <<: *sagco-base
+    command: ["sagco-dna", "--encode", "SAGCO OS TRUE"]
+
+  sagco-dna-execute:
+    <<: *sagco-base
+    command: ["sagco-dna", "--execute",
+      "ATG-TCT-GCT-GGT-TGT-CAG-TAA-CAG-TCT-TAA-ACT-CGT-ACG-GAA-TAA"]
+
+  sagco-dna-pdf-sequence:
+    <<: *sagco-base
+    command: ["sagco-dna", "--execute",
+      "TGA-ACT-GTC-TCA-TGT-TCG-CTA-CAC-CTC-CTA-ATC-TGT-TGA-GCT-ACT-ATC-TGA-CTA-TCA-TGT-CTC-TAG-CAC-CTG-TAC-CTG-TCA-TAG-CTG-TGT-CTC-AGC-TAG-TGT-AGC-TCA-CAC-CTA-ACT-TAG-CTG-TGT-CTC-TAG-CAC-GAT-CTA"]
 volumes:
   sagco-reports:
     driver: local
   sagco-data:
     driver: local
+
 
