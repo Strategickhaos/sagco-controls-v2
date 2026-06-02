@@ -54,6 +54,11 @@ services:
           TICK=$$((TICK + 1))
           TS=$$(date -u +%Y-%m-%dT%H:%M:%SZ)
           echo "[$$TS] TICK=$$TICK OPCODE=TOPOFUZZ"
+          # Seed required data first, then fuzz
+          mkdir -p data reports
+          sagco-reclass 1011.6 68.4 851.6 228.4 4 10 > /dev/null 2>&1 || true
+          sagco-reclass 1011.6 68.4 851.6 388.4 4 10 > /dev/null 2>&1 || true
+          sagco-reclass 851.6 228.4 851.6 228.4 4 10 > /dev/null 2>&1 || true
           sagco-topofuzz | grep "STATUS=\|TOPOLOGY_CASES_PASS=" || echo "ANTIBODY=FUZZ_VARIANCE TICK=$$TICK"
           sleep 60
         done

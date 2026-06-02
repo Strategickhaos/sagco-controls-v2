@@ -10,6 +10,11 @@ description = "SAGCO Sovereign Forensic + Audit Engine"
 name = "sagco-reclass"
 path = "src/main.rs"
 
+# ── HTTP API server ───────────────────────────────────────────────────────────
+[[bin]]
+name = "sagco-api"
+path = "src/bin/sagco-api.rs"
+
 # ── Persistent daemon heartbeat ──────────────────────────────────────────────
 [[bin]]
 name = "sagco-daemon"
