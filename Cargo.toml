@@ -10,6 +10,21 @@ description = "SAGCO Sovereign Forensic + Audit Engine"
 name = "sagco-reclass"
 path = "src/main.rs"
 
+# ── Chrome heap snapshot analyzer ────────────────────────────────────────────
+[[bin]]
+name = "sagco-heap"
+path = "src/bin/sagco-heap.rs"
+
+# ── Ledger / report differ ────────────────────────────────────────────────────
+[[bin]]
+name = "sagco-diff"
+path = "src/bin/sagco-diff.rs"
+
+# ── File system watcher (auto-OBSERVE on change) ──────────────────────────────
+[[bin]]
+name = "sagco-watch"
+path = "src/bin/sagco-watch.rs"
+
 # ── Git + GitHub agent ───────────────────────────────────────────────────────
 [[bin]]
 name = "sagco-git"
