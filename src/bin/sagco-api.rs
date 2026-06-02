@@ -158,7 +158,54 @@ fn handle(req: &str) -> String {
             json_response("200 OK", json!({ "output": out, "status": status }))
         }
 
-        _ => json_response("404 Not Found", json!({"error":"unknown endpoint","path":path}))
+        // ── POST /ledger/append — write a custom event to the ledger ──────────
+        ("POST", "/ledger/append") => {
+            if !check_auth(req) {
+                return json_response("401 Unauthorized",
+                    json!({"error":"unauthorized","hint":"Authorization: Bearer sagco-dev-token-2026"}));
+            }
+            let body_start = req.find("\r\n\r\n").map(|i| i + 4).unwrap_or(req.len());
+            let payload    = req[body_start..].trim().to_string();
+            log_write(req, &payload);
+
+            // Parse and enrich the entry
+            let mut entry: serde_json::Value = serde_json::from_str(&payload)
+                .unwrap_or(json!({"raw": payload}));
+
+            let ts   = Utc::now().to_rfc3339();
+            let s    = seal(&format!("{}{}", ts, payload));
+            entry["opcode"]    = json!("EXTERNAL_EVENT");
+            entry["timestamp"] = json!(ts);
+            entry["seal"]      = json!(s);
+
+            // Append to event ledger
+            std::fs::create_dir_all("data").ok();
+            if let Ok(mut f) = std::fs::OpenOptions::new()
+                .create(true).append(true).open("data/event_ledger.jsonl")
+            {
+                use std::io::Write;
+                let _ = f.write_all((serde_json::to_string(&entry).unwrap() + "\n").as_bytes());
+            }
+
+            println!("[{}] EVENT_LEDGER node={} seal={:.16}...",
+                ts,
+                entry["node"].as_str().unwrap_or("unknown"),
+                s);
+
+            json_response("200 OK", json!({
+                "opcode":    "EXTERNAL_EVENT",
+                "timestamp": ts,
+                "seal":      s,
+                "payload":   entry,
+                "ledger":    "data/event_ledger.jsonl",
+                "status":    "SAGCO_EVENT_LEDGERED"
+            }))
+        }
+
+        _ => json_response("404 Not Found", json!({"error":"unknown endpoint","path":path,"available":[
+            "GET /", "GET /topology", "GET /ledger", "GET /status",
+            "POST /run/guard", "POST /run/reclass", "POST /ledger/append"
+        ]}))
     }
 }
 
