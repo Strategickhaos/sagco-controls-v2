@@ -1,0 +1,6 @@
+﻿target/
+dist/
+reports/
+data/
+*.dockerbuild
+.env

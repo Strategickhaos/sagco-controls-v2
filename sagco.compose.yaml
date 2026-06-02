@@ -1,0 +1,170 @@
+# sagco.compose.yaml — SAGCO-OS Daemon Manifest v1.0
+# Persistent agent services. Each daemon runs continuously,
+# observes, seals, and ledgers on its own heartbeat.
+#
+# Start daemons:  docker compose -f sagco.compose.yaml up -d
+# Watch logs:     docker compose -f sagco.compose.yaml logs -f
+# One daemon:     docker compose -f sagco.compose.yaml up sagco-daemon-blue
+# Stop all:       docker compose -f sagco.compose.yaml down
+#
+# NOTE: $$ = literal $ inside docker compose shell strings (PS5.1 escaping)
+
+x-daemon-base: &daemon-base
+  image: sagco-controls-v2:latest
+  restart: unless-stopped
+  working_dir: /sagco
+  volumes:
+    - sagco-data:/sagco/data
+    - sagco-reports:/sagco/reports
+
+services:
+
+  # ── 🔵 BLUE TEAM DAEMON — guard + chainverify every 30s ────────────────────
+  sagco-daemon-blue:
+    <<: *daemon-base
+    container_name: sagco-daemon-blue
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        echo "DAEMON=BLUE STATUS=ONLINE"
+        TICK=0
+        while true; do
+          TICK=$$((TICK + 1))
+          TS=$$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          echo "[$$TS] TICK=$$TICK OPCODE=GUARD"
+          sagco-guard 4 10 | grep "STATUS="
+          echo "[$$TS] TICK=$$TICK OPCODE=CHAINVERIFY"
+          sagco-chainverify | grep "STATUS=\|LEDGERS_CHECKED=" || echo "ANTIBODY=CHAIN_BREAK TICK=$$TICK"
+          sleep 30
+        done
+    labels:
+      sagco.team: blue
+      sagco.heartbeat: 30s
+
+  # ── 🔴 RED TEAM DAEMON — topofuzz every 60s ────────────────────────────────
+  sagco-daemon-red:
+    <<: *daemon-base
+    container_name: sagco-daemon-red
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        echo "DAEMON=RED STATUS=ONLINE"
+        TICK=0
+        while true; do
+          TICK=$$((TICK + 1))
+          TS=$$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          echo "[$$TS] TICK=$$TICK OPCODE=TOPOFUZZ"
+          sagco-topofuzz | grep "STATUS=\|TOPOLOGY_CASES_PASS=" || echo "ANTIBODY=FUZZ_VARIANCE TICK=$$TICK"
+          sleep 60
+        done
+    labels:
+      sagco.team: red
+      sagco.heartbeat: 60s
+
+  # ── 🟣 PURPLE TEAM DAEMON — forecast + topology every 90s ──────────────────
+  sagco-daemon-purple:
+    <<: *daemon-base
+    container_name: sagco-daemon-purple
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        echo "DAEMON=PURPLE STATUS=ONLINE"
+        TICK=0
+        while true; do
+          TICK=$$((TICK + 1))
+          TS=$$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          echo "[$$TS] TICK=$$TICK OPCODE=FORECAST"
+          sagco-forecast --ledger /sagco/data/master_ledger.jsonl \
+            2>/dev/null | grep -E "FORECAST_CLASS|CONFIDENCE|STATUS" || true
+          echo "[$$TS] TICK=$$TICK OPCODE=TOPOLOGY"
+          sagco-topology --json 2>/dev/null | grep "TOTAL_NODES=\|TOTAL_EDGES=\|STATUS="
+          sleep 90
+        done
+    labels:
+      sagco.team: purple
+      sagco.heartbeat: 90s
+
+  # ── 🔵 OBSERVER DAEMON — fswalk on artifact delta every 45s ────────────────
+  sagco-daemon-observer:
+    <<: *daemon-base
+    container_name: sagco-daemon-observer
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        echo "DAEMON=OBSERVER STATUS=ONLINE"
+        LAST=0
+        TICK=0
+        while true; do
+          TICK=$$((TICK + 1))
+          TS=$$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          COUNT=$$(find /sagco/reports -type f 2>/dev/null | wc -l)
+          echo "[$$TS] TICK=$$TICK FILES=$$COUNT"
+          if [ "$$COUNT" -ne "$$LAST" ]; then
+            sagco-fswalk /sagco/reports --json 2>/dev/null | grep "FILE_COUNT=\|MANIFEST_SEAL=\|STATUS="
+            LAST=$$COUNT
+          fi
+          sleep 45
+        done
+    labels:
+      sagco.team: blue
+      sagco.heartbeat: 45s
+
+  # ── 🧠 SELF-LOOP DAEMON — machine reads its own ledger every 180s ──────────
+  # This is the "SAGCO observes itself" daemon.
+  sagco-daemon-self:
+    <<: *daemon-base
+    container_name: sagco-daemon-self
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        echo "DAEMON=SELF OPCODE=SELF_REFERENCE_LOOP STATUS=ONLINE"
+        TICK=0
+        while true; do
+          TICK=$$((TICK + 1))
+          TS=$$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          echo "[$$TS] TICK=$$TICK SELF_OBSERVE"
+          if [ -f /sagco/data/master_ledger.jsonl ]; then
+            sagco-observe /sagco/data/master_ledger.jsonl 2>/dev/null \
+              | grep "BYTES=\|TOKENS=\|ENTROPY=\|EVIDENCE_SCORE=\|SEAL=\|STATUS="
+            sagco-tokenize /sagco/data/master_ledger.jsonl 2>/dev/null \
+              | grep "TOKEN_COUNT=\|OPCODES=\|SEAL=\|STATUS=" || true
+          else
+            echo "LEDGER_NOT_FOUND — waiting for first reclass run"
+          fi
+          sleep 180
+        done
+    labels:
+      sagco.team: core
+      sagco.heartbeat: 180s
+
+  # ── 🔴 SENTINEL DAEMON — scope creep watch every 60s ───────────────────────
+  sagco-daemon-sentinel:
+    <<: *daemon-base
+    container_name: sagco-daemon-sentinel
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        echo "DAEMON=SENTINEL STATUS=ONLINE"
+        if [ ! -f /sagco/data/eurs.jsonl ]; then
+          printf '{"id":"C001","old_used":1011.6,"old_remaining":68.4,"new_used":851.6,"new_remaining":228.4,"crew_size":4,"hrs_per_day":10}\n' > /sagco/data/eurs.jsonl
+          printf '{"id":"C002","old_used":500.0,"old_remaining":100.0,"new_used":500.0,"new_remaining":260.0,"crew_size":4,"hrs_per_day":10}\n' >> /sagco/data/eurs.jsonl
+          echo "EUR_SEED=CREATED"
+        fi
+        TICK=0
+        while true; do
+          TICK=$$((TICK + 1))
+          TS=$$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          echo "[$$TS] TICK=$$TICK OPCODE=CREEP_WATCH"
+          sagco-creep-watch /sagco/data/eurs.jsonl --threshold 0.001 \
+            | grep "ALERT=\|SCOPE_CREEP_HITS=\|STATUS="
+          sleep 60
+        done
+    labels:
+      sagco.team: red
+      sagco.heartbeat: 60s
+
+volumes:
+  sagco-data:
+    driver: local
+  sagco-reports:
+    driver: local

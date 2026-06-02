@@ -1,0 +1,67 @@
+FROM rust:1.96-slim AS cross-builder
+
+RUN apt-get update && apt-get install -y \
+    gcc-aarch64-linux-gnu \
+    musl-tools \
+    pkg-config \
+    libssl-dev
+
+RUN rustup target add aarch64-unknown-linux-musl
+
+WORKDIR /sagco
+
+# Use Android-specific Cargo.toml (no minreq/openssl)
+COPY Cargo-android.toml ./Cargo.toml
+COPY Cargo.lock* ./
+RUN mkdir -p src/bin src/models src/modules && echo 'fn main() {}' > src/main.rs
+RUN CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=aarch64-linux-gnu-gcc \
+    cargo build --release --target aarch64-unknown-linux-musl 2>/dev/null || true
+RUN rm -rf src
+
+COPY src/ src/
+
+ENV CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=aarch64-linux-gnu-gcc
+
+# Build all TLS-free SAGCO bins for aarch64 Android
+RUN cargo build --release --target aarch64-unknown-linux-musl \
+    --bin sagco-guard \
+    --bin sagco-observe \
+    --bin sagco-tokenize \
+    --bin sagco-reclass \
+    --bin sagco-binscan \
+    --bin sagco-extract \
+    --bin sagco-fswalk \
+    --bin sagco-timeline \
+    --bin sagco-hunt \
+    --bin sagco-chainverify \
+    --bin sagco-baseline \
+    --bin sagco-forecast \
+    --bin sagco-topology \
+    --bin sagco-topofuzz \
+    --bin sagco-topoopt \
+    --bin sagco-verify \
+    --bin sagco-creep-watch \
+    --bin sagco-agent \
+    --bin sagco-daemon
+
+FROM debian:trixie-slim AS export
+WORKDIR /sagco-android
+COPY --from=cross-builder /sagco/target/aarch64-unknown-linux-musl/release/sagco-guard       ./
+COPY --from=cross-builder /sagco/target/aarch64-unknown-linux-musl/release/sagco-observe     ./
+COPY --from=cross-builder /sagco/target/aarch64-unknown-linux-musl/release/sagco-tokenize    ./
+COPY --from=cross-builder /sagco/target/aarch64-unknown-linux-musl/release/sagco-reclass     ./
+COPY --from=cross-builder /sagco/target/aarch64-unknown-linux-musl/release/sagco-binscan     ./
+COPY --from=cross-builder /sagco/target/aarch64-unknown-linux-musl/release/sagco-extract     ./
+COPY --from=cross-builder /sagco/target/aarch64-unknown-linux-musl/release/sagco-fswalk      ./
+COPY --from=cross-builder /sagco/target/aarch64-unknown-linux-musl/release/sagco-timeline    ./
+COPY --from=cross-builder /sagco/target/aarch64-unknown-linux-musl/release/sagco-hunt        ./
+COPY --from=cross-builder /sagco/target/aarch64-unknown-linux-musl/release/sagco-chainverify ./
+COPY --from=cross-builder /sagco/target/aarch64-unknown-linux-musl/release/sagco-baseline    ./
+COPY --from=cross-builder /sagco/target/aarch64-unknown-linux-musl/release/sagco-forecast    ./
+COPY --from=cross-builder /sagco/target/aarch64-unknown-linux-musl/release/sagco-topology    ./
+COPY --from=cross-builder /sagco/target/aarch64-unknown-linux-musl/release/sagco-topofuzz    ./
+COPY --from=cross-builder /sagco/target/aarch64-unknown-linux-musl/release/sagco-topoopt     ./
+COPY --from=cross-builder /sagco/target/aarch64-unknown-linux-musl/release/sagco-verify      ./
+COPY --from=cross-builder /sagco/target/aarch64-unknown-linux-musl/release/sagco-creep-watch ./
+COPY --from=cross-builder /sagco/target/aarch64-unknown-linux-musl/release/sagco-agent       ./
+COPY --from=cross-builder /sagco/target/aarch64-unknown-linux-musl/release/sagco-daemon      ./

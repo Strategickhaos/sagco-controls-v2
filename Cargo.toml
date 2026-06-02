@@ -1,0 +1,128 @@
+[package]
+name = "sagco-controls-v2"
+version = "0.3.0"
+edition = "2021"
+authors = ["Domenic Gabriel Garza / Strategickhaos DAO LLC"]
+description = "SAGCO Sovereign Forensic + Audit Engine"
+
+# ── Core audit binary ─────────────────────────────────────────────────────────
+[[bin]]
+name = "sagco-reclass"
+path = "src/main.rs"
+
+# ── Persistent daemon heartbeat ──────────────────────────────────────────────
+[[bin]]
+name = "sagco-daemon"
+path = "src/bin/sagco-daemon.rs"
+
+# ── Agent orchestrator ────────────────────────────────────────────────────────
+[[bin]]
+name = "sagco-agent"
+path = "src/bin/sagco-agent.rs"
+
+# ── Topology mapper ───────────────────────────────────────────────────────────
+[[bin]]
+name = "sagco-topology"
+path = "src/bin/sagco-topology.rs"
+
+# ── 🔴 RED TEAM ──────────────────────────────────────────────────────────────
+[[bin]]
+name = "sagco-creep-watch"
+path = "src/bin/sagco-creep-watch.rs"
+
+# ── 🔵 BLUE TEAM ──────────────────────────────────────────────────────────────
+[[bin]]
+name = "sagco-baseline"
+path = "src/bin/sagco-baseline.rs"
+
+[[bin]]
+name = "sagco-chainverify"
+path = "src/bin/sagco-chainverify.rs"
+
+# ── 🟣 PURPLE TEAM ────────────────────────────────────────────────────────────
+[[bin]]
+name = "sagco-verify"
+path = "src/bin/sagco-verify.rs"
+
+[[bin]]
+name = "sagco-forecast"
+path = "src/bin/sagco-forecast.rs"
+
+# ── Input firewall (must run before any math) ────────────────────────────────
+[[bin]]
+name = "sagco-guard"
+path = "src/bin/sagco-guard.rs"
+
+# ── Kernel root syscall ───────────────────────────────────────────────────────
+[[bin]]
+name = "sagco-observe"
+path = "src/bin/sagco-observe.rs"
+
+# ── Opcode 2: structured tokenizer ───────────────────────────────────────────
+[[bin]]
+name = "sagco-tokenize"
+path = "src/bin/sagco-tokenize.rs"
+
+# ── State machine plan runner ─────────────────────────────────────────────────
+[[bin]]
+name = "sagco-stepper"
+path = "src/bin/sagco-stepper.rs"
+
+# ── GCP REST agent (curl -L in Rust) ─────────────────────────────────────────
+[[bin]]
+name = "sagco-gcp-agent"
+path = "src/bin/sagco-gcp-agent.rs"
+
+# ── K8S cluster observer ─────────────────────────────────────────────────────
+[[bin]]
+name = "sagco-k8s-observe"
+path = "src/bin/sagco-k8s-observe.rs"
+
+# ── Topology fuzz regression suite ───────────────────────────────────────────
+[[bin]]
+name = "sagco-topofuzz"
+path = "src/bin/sagco-topofuzz.rs"
+
+# ── Tier-0: File-system walker  (rivals TSK fls/icat) ────────────────────────
+[[bin]]
+name = "sagco-fswalk"
+path = "src/bin/sagco-fswalk.rs"
+
+# ── Tier-0: Artifact extractor  (rivals Bulk Extractor) ──────────────────────
+[[bin]]
+name = "sagco-extract"
+path = "src/bin/sagco-extract.rs"
+
+# ── Tier-0: Super-timeline      (rivals Plaso/log2timeline) ──────────────────
+[[bin]]
+name = "sagco-timeline"
+path = "src/bin/sagco-timeline.rs"
+
+# ── Tier-1: Binary entropy scan (rivals Ghidra headless / radare2) ───────────
+[[bin]]
+name = "sagco-binscan"
+path = "src/bin/sagco-binscan.rs"
+
+# ── Tier-2: HTTP crawler agent  (rivals tshark / curl pipelines) ─────────────
+[[bin]]
+name = "sagco-crawler"
+path = "src/bin/sagco-crawler.rs"
+
+# ── Tier-4: Pattern hunter      (rivals YARA CLI) ────────────────────────────
+[[bin]]
+name = "sagco-hunt"
+path = "src/bin/sagco-hunt.rs"
+
+# ── Tier-5: Topology optimizer  (ML gradient descent over SAGCO metrics) ─────
+[[bin]]
+name = "sagco-topoopt"
+path = "src/bin/sagco-topoopt.rs"
+
+[dependencies]
+sha2       = "0.10"
+serde      = { version = "1", features = ["derive"] }
+serde_json = "1"
+chrono     = { version = "0.4", features = ["serde"] }
+walkdir    = "2"
+regex      = "1"
+minreq     = { version = "2", features = ["https-native"] }

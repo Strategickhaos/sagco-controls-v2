@@ -1,0 +1,179 @@
+version: "3.9"
+
+# ── SAGCO Headless Test Suite ─────────────────────────────────────────────────
+# Each service = one SAGCO command = one headless case study test
+# Run all:   docker compose run sagco-test-all
+# Run one:   docker compose run sagco-guard-test
+
+x-sagco-base: &sagco-base
+  image: sagco-controls-v2:latest
+  volumes:
+    - sagco-reports:/sagco/reports
+    - sagco-data:/sagco/data
+  working_dir: /sagco
+
+services:
+
+  # ── Build image ─────────────────────────────────────────────────────────────
+  sagco-build:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    image: sagco-controls-v2:latest
+    command: ["echo", "SAGCO image built STATUS=SAGCO_BUILD_PASS"]
+
+  # ── 🔵 BLUE TEAM tests ──────────────────────────────────────────────────────
+
+  sagco-guard-pass:
+    <<: *sagco-base
+    command: ["sagco-guard", "4", "10"]
+
+  sagco-guard-zero-crew:
+    <<: *sagco-base
+    command: ["sagco-guard", "0", "10"]
+
+  sagco-guard-zero-hrs:
+    <<: *sagco-base
+    command: ["sagco-guard", "4", "0"]
+
+  sagco-guard-overflow:
+    <<: *sagco-base
+    command: ["sagco-guard", "4", "25"]
+
+  sagco-observe-dockerfile:
+    <<: *sagco-base
+    volumes:
+      - sagco-reports:/sagco/reports
+      - sagco-data:/sagco/data
+      - ./Dockerfile:/sagco/target/Dockerfile:ro
+    command: ["sagco-observe", "/sagco/target/Dockerfile"]
+
+  sagco-fswalk-scan:
+    <<: *sagco-base
+    command: ["sagco-fswalk", "/sagco", "--json"]
+
+  sagco-chainverify:
+    <<: *sagco-base
+    command: ["sagco-chainverify"]
+
+  # ── 🔴 RED TEAM tests ────────────────────────────────────────────────────────
+
+  sagco-binscan-binary:
+    <<: *sagco-base
+    command: ["sagco-binscan", "/usr/local/bin/sagco-reclass", "--json"]
+
+  sagco-binscan-high-entropy:
+    <<: *sagco-base
+    command: ["sagco-binscan", "/usr/local/bin/sagco-agent", "--threshold", "6.5", "--json"]
+
+  sagco-extract-dockerfile:
+    <<: *sagco-base
+    volumes:
+      - sagco-reports:/sagco/reports
+      - sagco-data:/sagco/data
+      - ./Dockerfile:/sagco/target/Dockerfile:ro
+    command: ["sagco-extract", "/sagco/target/Dockerfile", "--json"]
+
+  sagco-topofuzz-run:
+    <<: *sagco-base
+    command: ["sagco-topofuzz"]
+
+  # ── 🟣 PURPLE TEAM tests ─────────────────────────────────────────────────────
+
+  sagco-reclass-baseline:
+    <<: *sagco-base
+    command: ["sagco-reclass", "1011.6", "68.4", "851.6", "228.4", "4", "10"]
+
+  sagco-reclass-scope-creep:
+    <<: *sagco-base
+    command: ["sagco-reclass", "1011.6", "68.4", "851.6", "388.4", "4", "10"]
+
+  sagco-reclass-reduction:
+    <<: *sagco-base
+    command: ["sagco-reclass", "1011.6", "68.4", "851.6", "100.0", "4", "10"]
+
+  sagco-reclass-no-change:
+    <<: *sagco-base
+    command: ["sagco-reclass", "851.6", "228.4", "851.6", "228.4", "4", "10"]
+
+  sagco-topoopt-20days:
+    <<: *sagco-base
+    command: ["sagco-topoopt", "1011.6", "68.4", "851.6", "228.4",
+              "--target-days", "20", "--lr", "0.005", "--iters", "2000", "--json"]
+
+  sagco-topoopt-30days:
+    <<: *sagco-base
+    command: ["sagco-topoopt", "1011.6", "68.4", "851.6", "228.4",
+              "--target-days", "30", "--lr", "0.01", "--iters", "3000", "--json"]
+
+  sagco-timeline-scan:
+    <<: *sagco-base
+    command: ["sagco-timeline", "/sagco", "--json"]
+
+  # ── 🔬 CASE STUDY: Refinery Shutdown ─────────────────────────────────────────
+  # Real field data: 1080 MHRS budget, reclassified
+  case-refinery-shutdown:
+    <<: *sagco-base
+    command: ["sagco-reclass", "1011.6", "68.4", "851.6", "228.4", "4", "10"]
+
+  # ── 🔬 CASE STUDY: Scope Creep Detection ─────────────────────────────────────
+  case-scope-creep:
+    <<: *sagco-base
+    command: ["sagco-reclass", "1011.6", "68.4", "851.6", "388.4", "4", "10"]
+
+  # ── 🔬 CASE STUDY: Zero Capacity Guard (bad input antibody) ──────────────────
+  case-zero-capacity:
+    <<: *sagco-base
+    command: ["sagco-guard", "0", "10"]
+
+  # ── 🔬 CASE STUDY: Binary forensics on own binary ────────────────────────────
+  case-binary-forensics:
+    <<: *sagco-base
+    command: ["sagco-binscan", "/usr/local/bin/sagco-reclass",
+              "--threshold", "7.0", "--json"]
+
+  # ── 🔬 CASE STUDY: Topology optimization — hit 15-day target ─────────────────
+  case-topology-15days:
+    <<: *sagco-base
+    command: ["sagco-topoopt", "1011.6", "68.4", "851.6", "228.4",
+              "--target-days", "15", "--lr", "0.003", "--iters", "5000", "--json"]
+
+  # ── Master test runner — runs all teams sequentially ─────────────────────────
+  sagco-test-all:
+    <<: *sagco-base
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -e
+        echo "=== SAGCO HEADLESS TEST SUITE ==="
+        echo ""
+
+        echo "--- BLUE TEAM ---"
+        sagco-guard 4 10
+        sagco-guard 0 10 || true
+        sagco-fswalk /sagco --json
+        sagco-chainverify || true
+
+        echo ""
+        echo "--- RED TEAM ---"
+        sagco-binscan /usr/local/bin/sagco-reclass --json
+        sagco-topofuzz || true
+
+        echo ""
+        echo "--- PURPLE TEAM ---"
+        sagco-reclass 1011.6 68.4 851.6 228.4 4 10
+        sagco-reclass 1011.6 68.4 851.6 388.4 4 10
+        sagco-reclass 851.6 228.4 851.6 228.4 4 10
+        sagco-topoopt 1011.6 68.4 851.6 228.4 --target-days 20 --lr 0.005 --iters 2000 --json
+        sagco-forecast --ledger /sagco/data/master_ledger.jsonl --json || true
+        sagco-chainverify
+
+        echo ""
+        echo "STATUS=SAGCO_HEADLESS_TEST_SUITE_PASS"
+
+volumes:
+  sagco-reports:
+    driver: local
+  sagco-data:
+    driver: local

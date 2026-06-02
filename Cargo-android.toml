@@ -1,0 +1,91 @@
+﻿[package]
+name = "sagco-controls-android"
+version = "0.3.0-android"
+edition = "2021"
+authors = ["Domenic Gabriel Garza / Strategickhaos DAO LLC"]
+description = "SAGCO Android aarch64 build — no TLS"
+
+[[bin]]
+name = "sagco-reclass"
+path = "src/main.rs"
+
+[[bin]]
+name = "sagco-daemon"
+path = "src/bin/sagco-daemon.rs"
+
+[[bin]]
+name = "sagco-agent"
+path = "src/bin/sagco-agent.rs"
+
+[[bin]]
+name = "sagco-topology"
+path = "src/bin/sagco-topology.rs"
+
+[[bin]]
+name = "sagco-guard"
+path = "src/bin/sagco-guard.rs"
+
+[[bin]]
+name = "sagco-observe"
+path = "src/bin/sagco-observe.rs"
+
+[[bin]]
+name = "sagco-tokenize"
+path = "src/bin/sagco-tokenize.rs"
+
+[[bin]]
+name = "sagco-binscan"
+path = "src/bin/sagco-binscan.rs"
+
+[[bin]]
+name = "sagco-extract"
+path = "src/bin/sagco-extract.rs"
+
+[[bin]]
+name = "sagco-fswalk"
+path = "src/bin/sagco-fswalk.rs"
+
+[[bin]]
+name = "sagco-timeline"
+path = "src/bin/sagco-timeline.rs"
+
+[[bin]]
+name = "sagco-hunt"
+path = "src/bin/sagco-hunt.rs"
+
+[[bin]]
+name = "sagco-chainverify"
+path = "src/bin/sagco-chainverify.rs"
+
+[[bin]]
+name = "sagco-baseline"
+path = "src/bin/sagco-baseline.rs"
+
+[[bin]]
+name = "sagco-forecast"
+path = "src/bin/sagco-forecast.rs"
+
+[[bin]]
+name = "sagco-topofuzz"
+path = "src/bin/sagco-topofuzz.rs"
+
+[[bin]]
+name = "sagco-topoopt"
+path = "src/bin/sagco-topoopt.rs"
+
+[[bin]]
+name = "sagco-verify"
+path = "src/bin/sagco-verify.rs"
+
+[[bin]]
+name = "sagco-creep-watch"
+path = "src/bin/sagco-creep-watch.rs"
+
+
+[dependencies]
+sha2       = "0.10"
+serde      = { version = "1", features = ["derive"] }
+serde_json = "1"
+chrono     = { version = "0.4", features = ["serde"] }
+walkdir    = "2"
+regex      = "1"
