@@ -1,4 +1,4 @@
-# sagco.compose.yaml — SAGCO-OS Daemon Manifest v1.0
+﻿# sagco.compose.yaml â€” SAGCO-OS Daemon Manifest v1.0
 # Persistent agent services. Each daemon runs continuously,
 # observes, seals, and ledgers on its own heartbeat.
 #
@@ -14,12 +14,12 @@ x-daemon-base: &daemon-base
   restart: unless-stopped
   working_dir: /sagco
   volumes:
-    - sagco-data:/sagco/data
-    - sagco-reports:/sagco/reports
+    - ./data:/sagco/data          # persistent — survives docker down
+    - ./reports:/sagco/reports     # persistent reports
 
 services:
 
-  # ── 🔵 BLUE TEAM DAEMON — guard + chainverify every 30s ────────────────────
+  # â”€â”€ ðŸ”µ BLUE TEAM DAEMON â€” guard + chainverify every 30s â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   sagco-daemon-blue:
     <<: *daemon-base
     container_name: sagco-daemon-blue
@@ -41,7 +41,7 @@ services:
       sagco.team: blue
       sagco.heartbeat: 30s
 
-  # ── 🔴 RED TEAM DAEMON — topofuzz every 60s ────────────────────────────────
+  # â”€â”€ ðŸ”´ RED TEAM DAEMON â€” topofuzz every 60s â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   sagco-daemon-red:
     <<: *daemon-base
     container_name: sagco-daemon-red
@@ -66,7 +66,7 @@ services:
       sagco.team: red
       sagco.heartbeat: 60s
 
-  # ── 🟣 PURPLE TEAM DAEMON — forecast + topology every 90s ──────────────────
+  # â”€â”€ ðŸŸ£ PURPLE TEAM DAEMON â€” forecast + topology every 90s â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   sagco-daemon-purple:
     <<: *daemon-base
     container_name: sagco-daemon-purple
@@ -89,7 +89,7 @@ services:
       sagco.team: purple
       sagco.heartbeat: 90s
 
-  # ── 🔵 OBSERVER DAEMON — fswalk on artifact delta every 45s ────────────────
+  # â”€â”€ ðŸ”µ OBSERVER DAEMON â€” fswalk on artifact delta every 45s â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   sagco-daemon-observer:
     <<: *daemon-base
     container_name: sagco-daemon-observer
@@ -114,7 +114,7 @@ services:
       sagco.team: blue
       sagco.heartbeat: 45s
 
-  # ── 🧠 SELF-LOOP DAEMON — machine reads its own ledger every 180s ──────────
+  # â”€â”€ ðŸ§  SELF-LOOP DAEMON â€” machine reads its own ledger every 180s â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   # This is the "SAGCO observes itself" daemon.
   sagco-daemon-self:
     <<: *daemon-base
@@ -134,7 +134,7 @@ services:
             sagco-tokenize /sagco/data/master_ledger.jsonl 2>/dev/null \
               | grep "TOKEN_COUNT=\|OPCODES=\|SEAL=\|STATUS=" || true
           else
-            echo "LEDGER_NOT_FOUND — waiting for first reclass run"
+            echo "LEDGER_NOT_FOUND â€” waiting for first reclass run"
           fi
           sleep 180
         done
@@ -142,7 +142,7 @@ services:
       sagco.team: core
       sagco.heartbeat: 180s
 
-  # ── 🔴 SENTINEL DAEMON — scope creep watch every 60s ───────────────────────
+  # â”€â”€ ðŸ”´ SENTINEL DAEMON â€” scope creep watch every 60s â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   sagco-daemon-sentinel:
     <<: *daemon-base
     container_name: sagco-daemon-sentinel
@@ -173,3 +173,4 @@ volumes:
     driver: local
   sagco-reports:
     driver: local
+

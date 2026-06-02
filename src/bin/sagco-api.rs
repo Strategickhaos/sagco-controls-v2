@@ -16,6 +16,25 @@ use serde_json::json;
 
 fn seal(s: &str) -> String { format!("{:x}", Sha256::digest(s.as_bytes())) }
 
+// ── Auth ──────────────────────────────────────────────────────────────────────
+// Bearer token guard for write routes.
+// Set env SAGCO_TOKEN to override default (change in prod).
+fn check_auth(req: &str) -> bool {
+    let token = std::env::var("SAGCO_TOKEN")
+        .unwrap_or_else(|_| "sagco-dev-token-2026".to_string());
+    let bearer = format!("Bearer {}", token);
+    req.lines().any(|l| l.starts_with("Authorization:") && l.contains(&bearer))
+}
+
+fn log_write(req: &str, payload: &str) {
+    // Audit every write attempt regardless of auth result
+    let ts    = Utc::now().to_rfc3339();
+    let agent = req.lines()
+        .find(|l| l.starts_with("User-Agent:"))
+        .unwrap_or("User-Agent: unknown");
+    println!("[{}] LEDGER_WRITE_ATTEMPT agent={} payload_len={}", ts, agent.trim(), payload.len());
+}
+
 fn run_bin(bin: &str, args: &[&str]) -> String {
     let exe = format!("target/debug/{}.exe", bin);
     let path = if std::path::Path::new(&exe).exists() { exe } else { bin.to_string() };
@@ -105,8 +124,13 @@ fn handle(req: &str) -> String {
         }
 
         ("POST", p) if p.starts_with("/run/guard") => {
-            // Parse body for crew/hrs (default 4/10)
+            // Auth guard on all write/run routes
+            if !check_auth(req) {
+                return json_response("401 Unauthorized",
+                    json!({"error":"unauthorized","hint":"Authorization: Bearer sagco-dev-token-2026"}));
+            }
             let body_start = req.find("\r\n\r\n").map(|i| i + 4).unwrap_or(req.len());
+            log_write(req, &req[body_start..]);
             let body: serde_json::Value = serde_json::from_str(&req[body_start..]).unwrap_or(json!({}));
             let crew = body["crew"].as_f64().unwrap_or(4.0).to_string();
             let hrs  = body["hrs"].as_f64().unwrap_or(10.0).to_string();
@@ -116,7 +140,12 @@ fn handle(req: &str) -> String {
         }
 
         ("POST", p) if p.starts_with("/run/reclass") => {
+            if !check_auth(req) {
+                return json_response("401 Unauthorized",
+                    json!({"error":"unauthorized","hint":"Authorization: Bearer sagco-dev-token-2026"}));
+            }
             let body_start = req.find("\r\n\r\n").map(|i| i + 4).unwrap_or(req.len());
+            log_write(req, &req[body_start..]);
             let b: serde_json::Value = serde_json::from_str(&req[body_start..]).unwrap_or(json!({}));
             let ou = b["old_used"].as_f64().unwrap_or(1011.6).to_string();
             let or_ = b["old_remaining"].as_f64().unwrap_or(68.4).to_string();

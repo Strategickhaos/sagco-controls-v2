@@ -1,6 +1,6 @@
-version: "3.9"
+﻿version: "3.9"
 
-# ── SAGCO Headless Test Suite ─────────────────────────────────────────────────
+# â”€â”€ SAGCO Headless Test Suite â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Each service = one SAGCO command = one headless case study test
 # Run all:   docker compose run sagco-test-all
 # Run one:   docker compose run sagco-guard-test
@@ -14,7 +14,7 @@ x-sagco-base: &sagco-base
 
 services:
 
-  # ── Build image ─────────────────────────────────────────────────────────────
+  # â”€â”€ Build image â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   sagco-build:
     build:
       context: .
@@ -23,7 +23,7 @@ services:
     image: sagco-controls-v2:latest
     command: ["echo", "SAGCO image built STATUS=SAGCO_BUILD_PASS"]
 
-  # ── 🔵 BLUE TEAM tests ──────────────────────────────────────────────────────
+  # â”€â”€ ðŸ”µ BLUE TEAM tests â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   sagco-guard-pass:
     <<: *sagco-base
@@ -57,7 +57,7 @@ services:
     <<: *sagco-base
     command: ["sagco-chainverify"]
 
-  # ── 🔴 RED TEAM tests ────────────────────────────────────────────────────────
+  # â”€â”€ ðŸ”´ RED TEAM tests â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   sagco-binscan-binary:
     <<: *sagco-base
@@ -79,7 +79,7 @@ services:
     <<: *sagco-base
     command: ["sagco-topofuzz"]
 
-  # ── 🟣 PURPLE TEAM tests ─────────────────────────────────────────────────────
+  # â”€â”€ ðŸŸ£ PURPLE TEAM tests â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   sagco-reclass-baseline:
     <<: *sagco-base
@@ -111,35 +111,35 @@ services:
     <<: *sagco-base
     command: ["sagco-timeline", "/sagco", "--json"]
 
-  # ── 🔬 CASE STUDY: Refinery Shutdown ─────────────────────────────────────────
+  # â”€â”€ ðŸ”¬ CASE STUDY: Refinery Shutdown â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   # Real field data: 1080 MHRS budget, reclassified
   case-refinery-shutdown:
     <<: *sagco-base
     command: ["sagco-reclass", "1011.6", "68.4", "851.6", "228.4", "4", "10"]
 
-  # ── 🔬 CASE STUDY: Scope Creep Detection ─────────────────────────────────────
+  # â”€â”€ ðŸ”¬ CASE STUDY: Scope Creep Detection â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   case-scope-creep:
     <<: *sagco-base
     command: ["sagco-reclass", "1011.6", "68.4", "851.6", "388.4", "4", "10"]
 
-  # ── 🔬 CASE STUDY: Zero Capacity Guard (bad input antibody) ──────────────────
+  # â”€â”€ ðŸ”¬ CASE STUDY: Zero Capacity Guard (bad input antibody) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   case-zero-capacity:
     <<: *sagco-base
     command: ["sagco-guard", "0", "10"]
 
-  # ── 🔬 CASE STUDY: Binary forensics on own binary ────────────────────────────
+  # â”€â”€ ðŸ”¬ CASE STUDY: Binary forensics on own binary â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   case-binary-forensics:
     <<: *sagco-base
     command: ["sagco-binscan", "/usr/local/bin/sagco-reclass",
               "--threshold", "7.0", "--json"]
 
-  # ── 🔬 CASE STUDY: Topology optimization — hit 15-day target ─────────────────
+  # â”€â”€ ðŸ”¬ CASE STUDY: Topology optimization â€” hit 15-day target â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   case-topology-15days:
     <<: *sagco-base
     command: ["sagco-topoopt", "1011.6", "68.4", "851.6", "228.4",
               "--target-days", "15", "--lr", "0.003", "--iters", "5000", "--json"]
 
-  # ── Master test runner — runs all teams sequentially ─────────────────────────
+  # â”€â”€ Master test runner â€” runs all teams sequentially â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   sagco-test-all:
     <<: *sagco-base
     entrypoint: ["/bin/sh", "-c"]
@@ -177,3 +177,4 @@ volumes:
     driver: local
   sagco-data:
     driver: local
+
