@@ -10,6 +10,11 @@ description = "SAGCO Sovereign Forensic + Audit Engine"
 name = "sagco-reclass"
 path = "src/main.rs"
 
+# ── Act VI: Sentinel Dreams — expected vs actual variance ─────────────────────
+[[bin]]
+name = "sagco-sentinel-dream"
+path = "src/bin/sagco-sentinel-dream.rs"
+
 # ── DNA Synthesis Tokenizer — codon → SAGCO opcode ───────────────────────────
 [[bin]]
 name = "sagco-dna"
