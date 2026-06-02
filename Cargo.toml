@@ -10,6 +10,11 @@ description = "SAGCO Sovereign Forensic + Audit Engine"
 name = "sagco-reclass"
 path = "src/main.rs"
 
+# ── Git + GitHub agent ───────────────────────────────────────────────────────
+[[bin]]
+name = "sagco-git"
+path = "src/bin/sagco-git.rs"
+
 # ── HTTP API server ───────────────────────────────────────────────────────────
 [[bin]]
 name = "sagco-api"
