@@ -10,6 +10,11 @@ description = "SAGCO Sovereign Forensic + Audit Engine"
 name = "sagco-reclass"
 path = "src/main.rs"
 
+# ── DNA Synthesis Tokenizer — codon → SAGCO opcode ───────────────────────────
+[[bin]]
+name = "sagco-dna"
+path = "src/bin/sagco-dna.rs"
+
 # ── Chrome heap snapshot analyzer ────────────────────────────────────────────
 [[bin]]
 name = "sagco-heap"
