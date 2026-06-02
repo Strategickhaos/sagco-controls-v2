@@ -1,0 +1,8 @@
+target/
+reports/
+data/
+*.md
+*.json
+*.jsonl
+.git/
+.vscode/
